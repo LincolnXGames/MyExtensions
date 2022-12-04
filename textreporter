@@ -16,10 +16,10 @@ class TextReporterExtension {
           }
         }
       ]
+    textReporter(args) {
+      return args.TXT;
+    }
     };
-  }
-  textReporter(args) {
-    return args.TXT;
   }
 }
 Scratch.extensions.register(new TextReporterExtension());
