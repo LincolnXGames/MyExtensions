@@ -16,9 +16,9 @@ class TextReporterExtension {
           }
         }
       ]
-    textReporter(args) {
-      return args.TXT;
-    }
+      textReporter(args) {
+        return args.TXT;
+      }
     };
   }
 }
