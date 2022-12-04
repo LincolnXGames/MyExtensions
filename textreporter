@@ -1,0 +1,25 @@
+class TextReporterExtension {
+  getInfo() {
+    return {
+      id: 'textreporter',
+      name: 'Text Reporter',
+      blocks: [
+        {
+          opcode: 'textReporter',
+          blockType: Scratch.BlockType.REPORTER,
+          text: '[TXT]',
+          arguments: {
+            TXT: {
+              type: Scratch.ArgumentType.STRING,
+              defaultValue: 'Hello World!'
+            }
+          }
+        }
+      ]
+    };
+  }
+  textreporter(args) {
+    return args.TXT;
+  }
+}
+Scratch.extensions.register(new TextReporterExtension());
