@@ -1,0 +1,28 @@
+class MyExtension {
+  getInfo() {
+    return {
+      id: 'lincolnxextension',
+      name: 'LincolnX',
+      blocks: [
+        {
+          opcode: 'isIdenticalTo',
+          blockType: Scratch.BlockType.BOOLEAN,
+          text: '[ONE] is identical to [TWO]',
+          arguments: {
+            ONE: {
+              type: Scratch.ArgumentType.STRING
+            },
+            TWO: {
+              type: Scratch.ArgumentType.STRING,
+            }
+          }
+        }
+      ]
+    };
+  }
+
+  isIdenticalTo(args) {
+    return args.ONE === args.TWO;
+  }
+}
+Scratch.extensions.register(new MyExtension());
