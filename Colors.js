@@ -1,9 +1,9 @@
 class Color {
   getInfo() {
     return {
-      id: 'colormanip',
+      id: 'lxColorManip',
       name: 'Colors',
-      color1: '#3ee0ba',
+      color1: '#ABBF2C',
       blocks: [
         {
           opcode: 'colorColor',
