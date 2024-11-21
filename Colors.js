@@ -21,6 +21,17 @@ class Color {
           }
         },
         {
+          opcode: 'colorIdentity',
+          blockType: Scratch.BlockType.REPORTER,
+          text: '[COL]',
+          blockIconURI: null,
+          arguments: {
+            COL: {
+              type: Scratch.ArgumentType.COLOR
+            }
+          }
+        },
+        {
           opcode: 'rgbOfColor',
           blockType: Scratch.BlockType.REPORTER,
           text: '[RGB] of color [COL]',
@@ -45,6 +56,9 @@ class Color {
   }
 
   colorColor(args) {
+    return args.COL;
+  }
+  colorIdentity(args) {
     return args.COL;
   }
   rgbOfColor(args) {
