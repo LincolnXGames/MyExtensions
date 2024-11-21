@@ -5,7 +5,7 @@ class Color {
     return {
       id: 'lxColorManip',
       name: 'Colors',
-      color1: '#ABBF2C',
+      color1: '#CC4373',
       menuIconURI: blockIcon, // replace this with bubbleIcon for ultimate legacy option
       blockIconURI: blockIcon,
       blocks: [
