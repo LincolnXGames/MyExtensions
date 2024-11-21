@@ -29,20 +29,6 @@ class Color {
           }
         },
         {
-          opcode: 'numToHexOrDec',
-          blockType: Scratch.BlockType.REPORTER,
-          text: '[NUM] to base [DEX]',
-          arguments: {
-            NUM: {
-              type: Scratch.ArgumentType.STRING
-            },
-            DEX: {
-              type: Scratch.ArgumentType.STRING,
-              menu: 'DEX_MENU'
-            }
-          }
-        },
-        {
           opcode: 'rgbOfColor',
           blockType: Scratch.BlockType.REPORTER,
           text: '[RGB] of color [COL]',
@@ -58,10 +44,6 @@ class Color {
         }
       ],
       menus: {
-          DEX_MENU: {
-          acceptReporters: true,
-          items: ['10', '16']
-        },
           RGB_MENU: {
           acceptReporters: true,
           items: [{text: 'Red', value: 'R'}, {text: 'Green', value: 'G'}, {text: 'Blue', value: 'B'}]
@@ -75,13 +57,6 @@ class Color {
   }
   colorIdentity(args) {
     return args.COL;
-  }
-  numToHexOrDec(args) {
-    if (args.DEX === 10) {
-      return parseInt(args.NUM, 16);
-    } else {
-      return Number(args.NUM).toString(16);
-    }
   }
   rgbOfColor(args) {
     if (args.RGB === 'R') {
