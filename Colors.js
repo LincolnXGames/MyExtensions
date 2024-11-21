@@ -7,7 +7,7 @@ class Color {
       id: 'lxColorManip',
       name: 'Colors',
       color1: '#ABBF2C',
-      menuIconURI: bubbleIcon,
+      menuIconURI: blockIcon, // replace this with bubbleIcon for ultimate legacy option
       blockIconURI: blockIcon,
       blocks: [
         {
