@@ -24,7 +24,7 @@ class Color {
           opcode: 'colorIdentity',
           blockType: Scratch.BlockType.REPORTER,
           text: '[COL]',
-          blockIconURI: null,
+          blockIconURI: "",
           arguments: {
             COL: {
               type: Scratch.ArgumentType.COLOR
