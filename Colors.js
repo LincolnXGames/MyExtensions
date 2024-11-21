@@ -7,25 +7,18 @@ class Color {
       name: 'Colors',
       color1: '#759186',
       color3: '#666762',
-      menuIconURI: blockIcon, // replace this with bubbleIcon for ultimate legacy option
+      menuIconURI: blockIcon,
       blockIconURI: blockIcon,
       blocks: [
         {
           opcode: 'colorColor',
           blockType: Scratch.BlockType.REPORTER,
-          text: 'color [COL]',
+          text: '[IMAGE] [COL]',
           arguments: {
-            COL: {
-              type: Scratch.ArgumentType.COLOR
+            IMAGE: {
+              type: Scratch.ArgumentType.IMAGE,
+              dataURI: bubbleIcon
             }
-          }
-        },
-        {
-          opcode: 'colorIdentity',
-          blockType: Scratch.BlockType.REPORTER,
-          text: '[COL]',
-          blockIconURI: "",
-          arguments: {
             COL: {
               type: Scratch.ArgumentType.COLOR
             }
@@ -56,9 +49,6 @@ class Color {
   }
 
   colorColor(args) {
-    return args.COL;
-  }
-  colorIdentity(args) {
     return args.COL;
   }
   rgbOfColor(args) {
