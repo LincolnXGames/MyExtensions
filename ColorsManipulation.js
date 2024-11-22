@@ -1,3 +1,31 @@
+function addNumbersInBases(num1, base1, num2, base2, outputBase) {
+  // Convert numbers to decimal
+  const decimalNum1 = parseInt(num1, base1);
+  const decimalNum2 = parseInt(num2, base2);
+
+  // Add the decimal numbers
+  const decimalSum = decimalNum1 + decimalNum2;
+
+  // Convert the sum back to the desired base
+  const result = decimalSum.toString(outputBase);
+
+  return result;
+}
+
+function avgHex(num1, num2) {
+  return (Math.round(addNumbersInBases(num1, 16, num2, 16, 10)/2)).toString(16).toUpperCase();
+}
+
+function grabRgbColor(color, rgb) {
+  if (rgb === 'red') {
+    return (color.charAt(1) + color.charAt(2)).toUpperCase();
+  } else if (rgb === 'green') {
+    return (color.charAt(3) + color.charAt(4)).toUpperCase();
+  } else {
+    return (color.charAt(5) + color.charAt(6)).toUpperCase();
+  }
+}
+
 (function(Scratch) {
   'use strict';
 
@@ -45,6 +73,19 @@
             opcode: 'colorRandom',
             blockType: Scratch.BlockType.REPORTER,
             text: 'random color',
+          },
+          {
+            opcode: 'colorAvereage',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'average color [COL1] and [COL2]',
+            arguments: {
+              COL1: {
+                type: Scratch.ArgumentType.COLOR
+              },
+              COL2: {
+                type: Scratch.ArgumentType.COLOR
+              }
+            }
           }
         ],
         menus: {
@@ -60,16 +101,13 @@
       return args.COL.toUpperCase();
     }
     rgbOfColor(args) {
-      if (args.RGB === 'red') {
-        return (args.COL.charAt(1) + args.COL.charAt(2)).toUpperCase();
-      } else if (args.RGB === 'green') {
-        return (args.COL.charAt(3) + args.COL.charAt(4)).toUpperCase();
-      } else {
-        return (args.COL.charAt(5) + args.COL.charAt(6)).toUpperCase();
-      }
+      grabRgbColor(args.COL, args.RGB)
     }
     colorRandom(args) {
       return ('#'+(Math.random()*0xFFFFFF<<0).toString(16)).toUpperCase();
+    }
+    colorAvereage(args) {
+      return '#' + avgHex(grabRgbColor(args.COL1, 'red'), grabRgbColor(args.COL2, 'red')) + avgHex(grabRgbColor(args.COL1, 'green'), grabRgbColor(args.COL2, 'green')) + avgHex(grabRgbColor(args.COL1, 'blue'), grabRgbColor(args.COL2, 'blue'));
     }
   }
   Scratch.extensions.register(new Color());
