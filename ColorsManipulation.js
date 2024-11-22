@@ -101,7 +101,7 @@ function grabRgbColor(color, rgb) {
       return args.COL.toUpperCase();
     }
     rgbOfColor(args) {
-      grabRgbColor(args.COL, args.RGB)
+      return grabRgbColor(args.COL, args.RGB)
     }
     colorRandom(args) {
       return ('#'+(Math.random()*0xFFFFFF<<0).toString(16)).toUpperCase();
