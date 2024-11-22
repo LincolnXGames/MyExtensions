@@ -12,8 +12,8 @@
       return {
         id: 'lxColorManip',
         name: 'Colors',
-        color1: '#759186',
-        color3: '#666762',
+        color1: '#FF9240',
+        color3: '#E6662B',
         menuIconURI: blockIcon,
         blockIconURI: blockIcon,
         blocks: [
@@ -30,7 +30,7 @@
           {
             opcode: 'rgbOfColor',
             blockType: Scratch.BlockType.REPORTER,
-            text: '[RGB] of color [COL]',
+            text: '[RGB] value of color [COL]',
             arguments: {
               COL: {
                 type: Scratch.ArgumentType.COLOR
@@ -40,28 +40,36 @@
                 menu: 'RGB_MENU'
               }
             }
+          },
+          {
+            opcode: 'colorRandom',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'random color',
           }
         ],
         menus: {
             RGB_MENU: {
-            acceptReporters: true,
-            items: [{text: 'Red', value: 'R'}, {text: 'Green', value: 'G'}, {text: 'Blue', value: 'B'}]
+            acceptReporters: false,
+            items: ['red', 'green', 'blue']
           }
         }
       };
     }
 
     colorColor(args) {
-      return args.COL;
+      return args.COL.toUpperCase();
     }
     rgbOfColor(args) {
-      if (args.RGB === 'R') {
-        return args.COL.charAt(1) + args.COL.charAt(2);
-      } else if (args.RGB === 'G') {
-        return args.COL.charAt(3) + args.COL.charAt(4);
+      if (args.RGB === 'red') {
+        return (args.COL.charAt(1) + args.COL.charAt(2)).toUpperCase();
+      } else if (args.RGB === 'green') {
+        return (args.COL.charAt(3) + args.COL.charAt(4)).toUpperCase();
       } else {
-        return args.COL.charAt(5) + args.COL.charAt(6);
+        return (args.COL.charAt(5) + args.COL.charAt(6)).toUpperCase();
       }
+    }
+    colorRandom(args) {
+      return ('#'+(Math.random()*0xFFFFFF<<0).toString(16)).toUpperCase();
     }
   }
   Scratch.extensions.register(new Color());
