@@ -1,29 +1,53 @@
-function addNumbersInBases(num1, base1, num2, base2, outputBase) {
-  // Convert numbers to decimal
-  const decimalNum1 = parseInt(num1, base1);
-  const decimalNum2 = parseInt(num2, base2);
+function operateHex(hex1, hex2, operation) {
+  const num1 = parseInt(hex1, 16);
+  const num2 = parseInt(hex2, 16);
 
-  // Add the decimal numbers
-  const decimalSum = decimalNum1 + decimalNum2;
+  let result;
 
-  // Convert the sum back to the desired base
-  const result = decimalSum.toString(outputBase);
+  switch (operation) {
+    case '+':
+      result = num1 + num2;
+      break;
+    case '-':
+      result = num1 - num2;
+      break;
+    case '*':
+      result = num1 * num2;
+      break;
+    case '/':
+      result = num1 / num2;
+      break;
+    case '^':
+      result = num1 ** num2;
+      break;
+    case 'round':
+      result = Math.round(num1);
+      break;
+  }
 
-  return result;
+  return result.toString(16).toUpperCase();
 }
 
 function avgHex(num1, num2) {
-  return (Math.round(addNumbersInBases(num1, 16, num2, 16, 10)/2)).toString(16).toUpperCase();
+  return operateHex(operateHex(operateHex(num1, num2, "+"), "2", "/"), "0", "round").toString(16).toUpperCase();
 }
 
-function grabRgbColor(color, rgb) {
-  if (rgb === 'red') {
-    return (color.charAt(1) + color.charAt(2)).toUpperCase();
-  } else if (rgb === 'green') {
-    return (color.charAt(3) + color.charAt(4)).toUpperCase();
-  } else {
-    return (color.charAt(5) + color.charAt(6)).toUpperCase();
+function grabRgb(color, rgb) {
+  let result;
+  
+  switch (rgb) {
+    case 'red':
+      result = (color.charAt(1) + color.charAt(2)).toUpperCase();
+      break;
+    case 'green':
+      result = (color.charAt(3) + color.charAt(4)).toUpperCase();
+      break;
+    case 'blue':
+      result = (color.charAt(5) + color.charAt(6)).toUpperCase();
+      break;
   }
+
+  return result;
 }
 
 (function(Scratch) {
@@ -75,7 +99,7 @@ function grabRgbColor(color, rgb) {
             text: 'random color',
           },
           {
-            opcode: 'colorAvereage',
+            opcode: 'colorAverage',
             blockType: Scratch.BlockType.REPORTER,
             text: 'average color [COL1] and [COL2]',
             arguments: {
@@ -101,13 +125,13 @@ function grabRgbColor(color, rgb) {
       return args.COL.toUpperCase();
     }
     rgbOfColor(args) {
-      return grabRgbColor(args.COL, args.RGB)
+      return grabRgb(args.COL, args.RGB)
     }
     colorRandom(args) {
       return ('#'+(Math.random()*0xFFFFFF<<0).toString(16)).toUpperCase();
     }
-    colorAvereage(args) {
-      return '#' + avgHex(grabRgbColor(args.COL1, 'red'), grabRgbColor(args.COL2, 'red')) + avgHex(grabRgbColor(args.COL1, 'green'), grabRgbColor(args.COL2, 'green')) + avgHex(grabRgbColor(args.COL1, 'blue'), grabRgbColor(args.COL2, 'blue'));
+    colorAverage(args) {
+      return '#' + avgHex(grabRgb(args.COL1, 'red'), grabRgb(args.COL2, 'red')) + avgHex(grabRgb(args.COL1, 'green'), grabRgb(args.COL2, 'green')) + avgHex(grabRgb(args.COL1, 'blue'), grabRgb(args.COL2, 'blue'));
     }
   }
   Scratch.extensions.register(new Color());
