@@ -1,3 +1,92 @@
+const { abs, min, max, round, floor } = Math;
+
+const toDec = (hex) => parseInt(hex, 16);
+const toHex = (dec) => dec.toString(16);
+const getRGB = (chn, clr) => clr.slice(chn*2-1, chn*2+1);
+const addHex = (hex1, hex2) => toHex(toDec(hex1) + toDec(hex2));
+const subHex = (hex1, hex2) => toHex(toDec(hex1) - toDec(hex2));
+const mulHex = (hex1, hex2) => toHex(toDec(hex1) * toDec(hex2));
+const divHex = (hex1, hex2) => toHex(toDec(hex1) / toDec(hex2));
+const roundHex = (hex) => toHex(round(toDec(hex1)));
+const limitHex = (hex, mi, ma) => toHex(min(max(toDec(hex), mi), ma));
+const fixHex = (hex) => limitHex(hex, 0, 255).padStart(2, '0');
+const toFixHex = (dec) => fixHex(dec.toString(16));
+const additiveHex = (hex1, hex2) => fixHex(addHex(hex1, hex2));
+const subtractiveHex = (hex1, hex2) => fixHex(subHex(hex1, hex2));
+const multiplicativeHex = (hex1, hex2) => toFixHex(((toDec(hex1) / 255) * (toDec(hex2) / 255)) * 255);
+const divisingHex = (hex1, hex2) => toFixHex(((toDec(hex1) / 255) / (toDec(hex2) / 255)) * 255);
+const differenceHex = (hex1, hex2) => toFixHex(abs(toDec(hex1) - toDec(hex2)));
+const screenHex = (hex1, hex2) => toFixHex((1 - (1 - toDec(hex1) / 255) * (1 - toDec(hex2) / 255)) * 255);
+const darkenHex = (hex1, hex2) => toFixHex(min(toDec(hex1), toDec(hex2)));
+const lightenHex = (hex1, hex2) => toFixHex(max(toDec(hex1), toDec(hex2)));
+function overlayHex(hex1, hex2) {
+  let a = toDec(hex1) / 255;
+  let b = toDec(hex2) / 255;
+  let overlay;
+  if (a < 0.5) {
+    overlay = 2 * a * b;
+  } else {
+    overlay = 1 - (2 * (1 - a) * (1 - b));
+  }
+  return toFixHex(overlay * 255)
+}
+
+function hsvToRgb(h, s, v) {
+    h /= 360;
+    s /= 100;
+    v /= 100;
+    var r, g, b, i, f, p, q, t;
+    if (arguments.length === 1) {
+        s = h.s, v = h.v, h = h.h;
+    }
+    i = floor(h * 6);
+    f = h * 6 - i;
+    p = v * (1 - s);
+    q = v * (1 - f * s);
+    t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+        case 0: r = v, g = t, b = p; break;
+        case 1: r = q, g = v, b = p; break;
+        case 2: r = p, g = v, b = t; break;
+        case 3: r = p, g = q, b = v; break;
+        case 4: r = t, g = p, b = v; break;
+        case 5: r = v, g = p, b = q; break;
+    }
+    return {
+        r: round(r * 255),
+        g: round(g * 255),
+        b: round(b * 255)
+    };
+}
+
+function hslToRgb(h, s, l) {
+  h /= 360;
+  s /= 100;
+  l /= 100;
+  let r, g, b;
+
+  if (s === 0) {
+    r = g = b = l; // achromatic
+  } else {
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hueToRgb(p, q, h + 1/3);
+    g = hueToRgb(p, q, h);
+    b = hueToRgb(p, q, h - 1/3);
+  }
+
+  return {r: round(r * 255), g: round(g * 255), b: round(b * 255)};
+}
+
+function hueToRgb(p, q, t) {
+  if (t < 0) t += 1;
+  if (t > 1) t -= 1;
+  if (t < 1/6) return p + (q - p) * 6 * t;
+  if (t < 1/2) return q;
+  if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+  return p;
+}
+
 (function(Scratch) {
   'use strict';
   
@@ -17,24 +106,284 @@
             text: 'new color [COL]',
             arguments: {
               COL: {
-                type: Scratch.ArgumentType.COLOR
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
               }
             }
           },
+          {
+            opcode: 'newColorRGB',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'from RGB [R] [G] [B]',
+            arguments: {
+              R: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: '164'
+              },
+              G: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: '94'
+              },
+              B: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: '255'
+              }
+            }
+          },
+          {
+            opcode: 'newColorHSV',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'from HSV [H] [S] [V]',
+            arguments: {
+              H: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: '266'
+              },
+              S: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: '63'
+              },
+              V: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: '100'
+              }
+            }
+          },
+          {
+            opcode: 'newColorHSL',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'from HSL [H] [S] [L]',
+            arguments: {
+              H: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: '266'
+              },
+              S: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: '100'
+              },
+              L: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: '68'
+              }
+            }
+          },
+          '---',
           {
             opcode: 'randomColor',
             blockType: Scratch.BlockType.REPORTER,
             text: 'random color',
             disableMonitor: true
+          },
+          '---',
+          {
+            opcode: 'additiveBlend',
+            blockType: Scratch.BlockType.REPORTER,
+            text: '[COL1] + [COL2]',
+            arguments: {
+              COL1: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              COL2: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#eb57ab'
+              }
+            }
+          },
+          {
+            opcode: 'subtractiveBlend',
+            blockType: Scratch.BlockType.REPORTER,
+            text: '[COL1] - [COL2]',
+            arguments: {
+              COL1: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              COL2: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#eb57ab'
+              }
+            }
+          },
+          {
+            opcode: 'multiplicativeBlend',
+            blockType: Scratch.BlockType.REPORTER,
+            text: '[COL1] * [COL2]',
+            arguments: {
+              COL1: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              COL2: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#eb57ab'
+              }
+            }
+          },
+          {
+            opcode: 'divisingBlend',
+            blockType: Scratch.BlockType.REPORTER,
+            text: '[COL1] / [COL2]',
+            arguments: {
+              COL1: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              COL2: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#eb57ab'
+              }
+            }
+          },
+          {
+            opcode: 'differenceBlend',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'difference of [COL1] - [COL2]',
+            arguments: {
+              COL1: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              COL2: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#eb57ab'
+              }
+            }
+          },
+          {
+            opcode: 'screenBlend',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'screen [COL1] * [COL2]',
+            arguments: {
+              COL1: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              COL2: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#eb57ab'
+              }
+            }
+          },
+          {
+            opcode: 'overlayBlend',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'overlay [COL1] * [COL2]',
+            arguments: {
+              COL1: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              COL2: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#eb57ab'
+              }
+            }
+          },
+          {
+            opcode: 'darkenOnlyBlend',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'darken [COL1] min [COL2]',
+            arguments: {
+              COL1: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              COL2: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#eb57ab'
+              }
+            }
+          },
+          {
+            opcode: 'lightenOnlyBlend',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'lighten [COL1] max [COL2]',
+            arguments: {
+              COL1: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              COL2: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#eb57ab'
+              }
+            }
           }
         ]
       };
     }
-    newColor({COL}) {
-      return COL;
+    newColor(args) {
+      return args.COL;
+    }
+    newColorRGB(args) {
+      return '#' + toFixHex(args.R) + toFixHex(args.G) + toFixHex(args.B);
+    }
+    newColorHSV(args) {
+      let convRGB = hsvToRgb(args.H, args.S, args.V);
+      return '#' + toFixHex(convRGB.r) + toFixHex(convRGB.g) + toFixHex(convRGB.b);
+    }
+    newColorHSL(args) {
+      let convRGB = hslToRgb(args.H, args.S, args.L);
+      return '#' + toFixHex(convRGB.r) + toFixHex(convRGB.g) + toFixHex(convRGB.b);
     }
     randomColor() {
       return '#' + Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6, '0');
+    }
+    additiveBlend(args) {
+      let newR = additiveHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
+      let newG = additiveHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
+      let newB = additiveHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
+      return '#' + newR + newG + newB;
+    }
+    subtractiveBlend(args) {
+      let newR = subtractiveHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
+      let newG = subtractiveHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
+      let newB = subtractiveHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
+      return '#' + newR + newG + newB;
+    }
+    multiplicativeBlend(args) {
+      let newR = multiplicativeHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
+      let newG = multiplicativeHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
+      let newB = multiplicativeHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
+      return '#' + newR + newG + newB;
+    }
+    divisingBlend(args) {
+      let newR = divisingHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
+      let newG = divisingHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
+      let newB = divisingHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
+      return '#' + newR + newG + newB;
+    }
+    differenceBlend(args) {
+      let newR = differenceHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
+      let newG = differenceHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
+      let newB = differenceHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
+      return '#' + newR + newG + newB;
+    }
+    screenBlend(args) {
+      let newR = screenHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
+      let newG = screenHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
+      let newB = screenHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
+      return '#' + newR + newG + newB;
+    }
+    overlayBlend(args) {
+      let newR = overlayHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
+      let newG = overlayHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
+      let newB = overlayHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
+      return '#' + newR + newG + newB;
+    }
+    darkenOnlyBlend(args) {
+      let newR = darkenHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
+      let newG = darkenHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
+      let newB = darkenHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
+      return '#' + newR + newG + newB;
+    }
+    lightenOnlyBlend(args) {
+      let newR = lightenHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
+      let newG = lightenHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
+      let newB = lightenHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
+      return '#' + newR + newG + newB;
     }
   }
   Scratch.extensions.register(new Colors());
