@@ -1,4 +1,4 @@
-const { abs, min, max, round, floor } = Math;
+const { abs, min, max, round, floor, sqrt } = Math;
 
 const toDec = (hex) => parseInt(hex, 16);
 const toHex = (dec) => dec.toString(16);
@@ -17,8 +17,7 @@ const multiplicativeHex = (hex1, hex2) => toFixHex(((toDec(hex1) / 255) * (toDec
 const divisingHex = (hex1, hex2) => toFixHex(((toDec(hex1) / 255) / (toDec(hex2) / 255)) * 255);
 const differenceHex = (hex1, hex2) => toFixHex(abs(toDec(hex1) - toDec(hex2)));
 const screenHex = (hex1, hex2) => toFixHex((1 - (1 - toDec(hex1) / 255) * (1 - toDec(hex2) / 255)) * 255);
-const darkenHex = (hex1, hex2) => toFixHex(min(toDec(hex1), toDec(hex2)));
-const lightenHex = (hex1, hex2) => toFixHex(max(toDec(hex1), toDec(hex2)));
+
 function overlayHex(hex1, hex2) {
   let a = toDec(hex1) / 255;
   let b = toDec(hex2) / 255;
@@ -236,6 +235,7 @@ function hueToRgb(p, q, t) {
               }
             }
           },
+          '---',
           {
             opcode: 'differenceBlend',
             blockType: Scratch.BlockType.REPORTER,
@@ -270,36 +270,6 @@ function hueToRgb(p, q, t) {
             opcode: 'overlayBlend',
             blockType: Scratch.BlockType.REPORTER,
             text: 'overlay [COL1] * [COL2]',
-            arguments: {
-              COL1: {
-                type: Scratch.ArgumentType.COLOR,
-                defaultValue: '#a45eff'
-              },
-              COL2: {
-                type: Scratch.ArgumentType.COLOR,
-                defaultValue: '#eb57ab'
-              }
-            }
-          },
-          {
-            opcode: 'darkenOnlyBlend',
-            blockType: Scratch.BlockType.REPORTER,
-            text: 'darken [COL1] min [COL2]',
-            arguments: {
-              COL1: {
-                type: Scratch.ArgumentType.COLOR,
-                defaultValue: '#a45eff'
-              },
-              COL2: {
-                type: Scratch.ArgumentType.COLOR,
-                defaultValue: '#eb57ab'
-              }
-            }
-          },
-          {
-            opcode: 'lightenOnlyBlend',
-            blockType: Scratch.BlockType.REPORTER,
-            text: 'lighten [COL1] max [COL2]',
             arguments: {
               COL1: {
                 type: Scratch.ArgumentType.COLOR,
@@ -371,18 +341,6 @@ function hueToRgb(p, q, t) {
       let newR = overlayHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
       let newG = overlayHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
       let newB = overlayHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
-      return '#' + newR + newG + newB;
-    }
-    darkenOnlyBlend(args) {
-      let newR = darkenHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
-      let newG = darkenHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
-      let newB = darkenHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
-      return '#' + newR + newG + newB;
-    }
-    lightenOnlyBlend(args) {
-      let newR = lightenHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
-      let newG = lightenHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
-      let newB = lightenHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
       return '#' + newR + newG + newB;
     }
   }
