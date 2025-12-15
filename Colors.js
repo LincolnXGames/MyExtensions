@@ -1,4 +1,4 @@
-const { abs, min, max, round, floor, sqrt } = Math;
+const { abs, round, floor, sqrt } = Math;
 
 const toDec = (hex) => parseInt(hex, 16);
 const toHex = (dec) => dec.toString(16);
@@ -8,7 +8,7 @@ const subHex = (hex1, hex2) => toHex(toDec(hex1) - toDec(hex2));
 const mulHex = (hex1, hex2) => toHex(toDec(hex1) * toDec(hex2));
 const divHex = (hex1, hex2) => toHex(toDec(hex1) / toDec(hex2));
 const roundHex = (hex) => toHex(round(toDec(hex1)));
-const limitHex = (hex, mi, ma) => toHex(min(max(toDec(hex), mi), ma));
+const limitHex = (hex, mi, ma) => toHex(Math.min(Math.max(toDec(hex), mi), ma));
 const fixHex = (hex) => limitHex(hex, 0, 255).padStart(2, '0');
 const toFixHex = (dec) => fixHex(dec.toString(16));
 const additiveHex = (hex1, hex2) => fixHex(addHex(hex1, hex2));
@@ -17,7 +17,13 @@ const multiplicativeHex = (hex1, hex2) => toFixHex(((toDec(hex1) / 255) * (toDec
 const divisingHex = (hex1, hex2) => toFixHex(((toDec(hex1) / 255) / (toDec(hex2) / 255)) * 255);
 const differenceHex = (hex1, hex2) => toFixHex(abs(toDec(hex1) - toDec(hex2)));
 const screenHex = (hex1, hex2) => toFixHex((1 - (1 - toDec(hex1) / 255) * (1 - toDec(hex2) / 255)) * 255);
-
+const mixRatio = (a, b, ratio) => a + (b - a) * ratio;
+function mixHexRatio(hex1, hex2, ratio) {
+  let a = toDec(hex1);
+  let b = toDec(hex2);
+  let result = a + (b - a) * ratio;
+  return toFixHex(result);
+}
 function overlayHex(hex1, hex2) {
   let a = toDec(hex1) / 255;
   let b = toDec(hex2) / 255;
@@ -57,13 +63,38 @@ function hsvToRgb(h, s, v) {
         b: round(b * 255)
     };
 }
+function rgbToHsv(r, g, b) {
+    if (arguments.length === 1) {
+        g = r.g, b = r.b, r = r.r;
+    }
+    var max = Math.max(r, g, b), min = Math.min(r, g, b),
+        d = max - min,
+        h,
+        s = (max === 0 ? 0 : d / max),
+        v = max / 255;
+    switch (max) {
+        case min: h = 0; break;
+        case r: h = (g - b) + d * (g < b ? 6: 0); h /= 6 * d; break;
+        case g: h = (b - r) + d * 2; h /= 6 * d; break;
+        case b: h = (r - g) + d * 4; h /= 6 * d; break;
+    }
+    return {
+        h: h * 360,
+        s: s * 100,
+        v: v * 100
+    };
+}
+const hexToHsv = (hex) => rgbToHsv(toDec(getRGB(1, hex)), toDec(getRGB(2, hex)), toDec(getRGB(3, hex)));
+function hsvToHex(h, s, v) {
+  let convRGB = hsvToRgb(h, s, v);
+  return '#' + toFixHex(convRGB.r) + toFixHex(convRGB.g) + toFixHex(convRGB.b);
+}
 
 function hslToRgb(h, s, l) {
   h /= 360;
   s /= 100;
   l /= 100;
   let r, g, b;
-
   if (s === 0) {
     r = g = b = l; // achromatic
   } else {
@@ -73,7 +104,6 @@ function hslToRgb(h, s, l) {
     g = hueToRgb(p, q, h);
     b = hueToRgb(p, q, h - 1/3);
   }
-
   return {r: round(r * 255), g: round(g * 255), b: round(b * 255)};
 }
 
@@ -164,6 +194,17 @@ function hueToRgb(p, q, t) {
               L: {
                 type: Scratch.ArgumentType.NUMBER,
                 defaultValue: '68'
+              }
+            }
+          },
+          {
+            opcode: 'newColorDecimal',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'from decimal [DEC]',
+            arguments: {
+              DEC: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: '10772223'
               }
             }
           },
@@ -280,8 +321,88 @@ function hueToRgb(p, q, t) {
                 defaultValue: '#eb57ab'
               }
             }
+          },
+          '---',
+          {
+            opcode: 'interpolateColors',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'interpolate [COL1] to [COL2] ratio [RATIO] using [SPACE]',
+            arguments: {
+              COL1: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              COL2: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#eb57ab'
+              },
+              RATIO: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: '0.5'
+              },
+              SPACE: {
+                type: Scratch.ArgumentType.STRING,
+                menu: 'SPACE_MENU'
+              }
+            }
+          },
+          '---',
+          {
+            opcode: 'getChannelFromColor',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'get [CHN] of [COL]',
+            arguments: {
+              CHN: {
+                type: Scratch.ArgumentType.STRING,
+                menu: 'CHANNEL_MENU'
+              },
+              COL: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              }
+            }
+          },
+          {
+            opcode: 'setChannelOfColor',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'set [CHN] of [COL] to [SET]',
+            arguments: {
+              CHN: {
+                type: Scratch.ArgumentType.STRING,
+                menu: 'CHANNEL_MENU'
+              },
+              COL: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              SET: {
+                type: Scratch.ArgumentType.NUMBER,
+              }
+            }
+          },
+          '---',
+          {
+            opcode: 'colorToDecimal',
+            blockType: Scratch.BlockType.REPORTER,
+            text: '[COL] to decimal',
+            arguments: {
+              COL: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              }
+            }
           }
-        ]
+        ],
+        menus: {
+          CHANNEL_MENU: {
+            acceptReporters: true,
+            items: ['red', 'green', 'blue', 'hue', 'saturation', 'value']
+          },
+          SPACE_MENU: {
+            acceptReporters: true,
+            items: ['RGB', 'HSV']
+          }
+        }
       };
     }
     newColor(args) {
@@ -291,12 +412,14 @@ function hueToRgb(p, q, t) {
       return '#' + toFixHex(args.R) + toFixHex(args.G) + toFixHex(args.B);
     }
     newColorHSV(args) {
-      let convRGB = hsvToRgb(args.H, args.S, args.V);
-      return '#' + toFixHex(convRGB.r) + toFixHex(convRGB.g) + toFixHex(convRGB.b);
+      return hsvToHex(args.H, args.S, args.V);
     }
     newColorHSL(args) {
       let convRGB = hslToRgb(args.H, args.S, args.L);
       return '#' + toFixHex(convRGB.r) + toFixHex(convRGB.g) + toFixHex(convRGB.b);
+    }
+    newColorDecimal(args) {
+      return '#' + toHex(args.DEC);
     }
     randomColor() {
       return '#' + Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6, '0');
@@ -342,6 +465,60 @@ function hueToRgb(p, q, t) {
       let newG = overlayHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
       let newB = overlayHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
       return '#' + newR + newG + newB;
+    }
+    interpolateColors(args) {
+      if (args.SPACE == 'RGB') {
+        let newR = mixHexRatio(getRGB(1, args.COL1), getRGB(1, args.COL2), args.RATIO);
+        let newG = mixHexRatio(getRGB(2, args.COL1), getRGB(2, args.COL2), args.RATIO);
+        let newB = mixHexRatio(getRGB(3, args.COL1), getRGB(3, args.COL2), args.RATIO);
+        return '#' + newR + newG + newB;
+      } else {
+        let hsv1 = hexToHsv(args.COL1);
+        let hsv2 = hexToHsv(args.COL2);
+        let mixedH = mixRatio(hsv1.h, hsv2.h, args.RATIO);
+        let mixedS = mixRatio(hsv1.s, hsv2.s, args.RATIO);
+        let mixedV = mixRatio(hsv1.v, hsv2.v, args.RATIO);
+        return hsvToHex(mixedH, mixedS, mixedV);
+      }
+    }
+    getChannelFromColor(args) {
+      if (['red', 'green', 'blue'].includes(args.CHN)) {
+        let channel = ['red', 'green', 'blue'].indexOf(args.CHN) + 1;
+        return toDec(getRGB(channel, args.COL));
+      } else if (['hue', 'saturation', 'value'].includes(args.CHN)) {
+        let hsv = hexToHsv(args.COL);
+        switch (args.CHN) {
+          case 'hue': return round(hsv.h);
+          case 'saturation': return round(hsv.s);
+          case 'value': return round(hsv.v);
+        }
+      }
+    }
+    setChannelOfColor(args) {
+      if (['red', 'green', 'blue'].includes(args.CHN)) {
+        let rgb = {
+          r: toDec(getRGB(1, args.COL)),
+          g: toDec(getRGB(2, args.COL)),
+          b: toDec(getRGB(3, args.COL))
+        };
+        switch (args.CHN) {
+          case 'red': rgb.r = args.SET; break;
+          case 'green': rgb.g = args.SET; break;
+          case 'blue': rgb.b = args.SET; break;
+        }
+        return '#' + toFixHex(rgb.r) + toFixHex(rgb.g) + toFixHex(rgb.b);
+      } else if (['hue', 'saturation', 'value'].includes(args.CHN)) {
+        let hsv = hexToHsv(args.COL);
+        switch (args.CHN) {
+          case 'hue': hsv.h = args.SET; break;
+          case 'saturation': hsv.s = args.SET; break;
+          case 'value': hsv.v = args.SET; break;
+        }
+        return hsvToHex(hsv.h, hsv.s, hsv.v);
+      }
+    }
+    colorToDecimal(args) {
+      return toDec(args.COL.slice(1));
     }
   }
   Scratch.extensions.register(new Colors());
