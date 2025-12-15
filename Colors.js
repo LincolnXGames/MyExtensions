@@ -475,6 +475,9 @@ function hueToRgb(p, q, t) {
       } else {
         let hsv1 = hexToHsv(args.COL1);
         let hsv2 = hexToHsv(args.COL2);
+        if (hsv1.h == 0) or (hsv2.h == 0) {
+         
+        }
         let mixedH = mixRatio(hsv1.h, hsv2.h, args.RATIO);
         let mixedS = mixRatio(hsv1.s, hsv2.s, args.RATIO);
         let mixedV = mixRatio(hsv1.v, hsv2.v, args.RATIO);
