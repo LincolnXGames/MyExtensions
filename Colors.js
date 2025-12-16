@@ -2,27 +2,55 @@ const { abs, round, floor, sqrt } = Math;
 
 const toDec = (hex) => parseInt(hex, 16);
 const toHex = (dec) => dec.toString(16);
-const getRGB = (chn, clr) => clr.slice(chn*2-1, chn*2+1);
+const getRGB = (chn, clr) => {
+  clr = clr.replace('#','');
+  return clr.slice((chn - 1) * 2, chn * 2);
+};
 const addHex = (hex1, hex2) => toHex(toDec(hex1) + toDec(hex2));
 const subHex = (hex1, hex2) => toHex(toDec(hex1) - toDec(hex2));
 const mulHex = (hex1, hex2) => toHex(toDec(hex1) * toDec(hex2));
 const divHex = (hex1, hex2) => toHex(toDec(hex1) / toDec(hex2));
-const roundHex = (hex) => toHex(round(toDec(hex1)));
+const roundHex = (hex) => toHex(round(toDec(hex)));
 const limitHex = (hex, mi, ma) => toHex(Math.min(Math.max(toDec(hex), mi), ma));
 const fixHex = (hex) => limitHex(hex, 0, 255).padStart(2, '0');
 const toFixHex = (dec) => fixHex(dec.toString(16));
 const additiveHex = (hex1, hex2) => fixHex(addHex(hex1, hex2));
 const subtractiveHex = (hex1, hex2) => fixHex(subHex(hex1, hex2));
 const multiplicativeHex = (hex1, hex2) => toFixHex(((toDec(hex1) / 255) * (toDec(hex2) / 255)) * 255);
-const divisingHex = (hex1, hex2) => toFixHex(((toDec(hex1) / 255) / (toDec(hex2) / 255)) * 255);
+const divisingHex = (hex1, hex2) => {
+  const b = Math.max(1, toDec(hex2));
+  return toFixHex(((toDec(hex1) / 255) / (b / 255)) * 255);
+};
 const differenceHex = (hex1, hex2) => toFixHex(abs(toDec(hex1) - toDec(hex2)));
 const screenHex = (hex1, hex2) => toFixHex((1 - (1 - toDec(hex1) / 255) * (1 - toDec(hex2) / 255)) * 255);
 const mixRatio = (a, b, ratio) => a + (b - a) * ratio;
 function mixHexRatio(hex1, hex2, ratio) {
   let a = toDec(hex1);
   let b = toDec(hex2);
+  ratio = Math.min(1, Math.max(0, ratio));
   let result = a + (b - a) * ratio;
   return toFixHex(result);
+}
+function interpolateHexColorsHsv(color1, color2, factor) {
+    const hsv1 = rgbToHsv(hexToRgb(color1));
+    const hsv2 = rgbToHsv(hexToRgb(color2));
+    factor = Math.min(1, Math.max(0, factor));
+    // Handle hue interpolation for the shortest path around the color wheel
+    let h1 = hsv1.h;
+    let h2 = hsv2.h;
+    let hueDiff = h2 - h1;
+    if (hueDiff > 180) {
+        h1 += 360;
+    } else if (hueDiff < -180) {
+        h2 += 360;
+    }
+
+    const h = h1 + factor * (h2 - h1);
+    const s = hsv1.s + factor * (hsv2.s - hsv1.s);
+    const v = hsv1.v + factor * (hsv2.v - hsv1.v);
+
+    const interpolatedRgb = hsvToRgb({ h, s, v });
+    return rgbToHex(interpolatedRgb);
 }
 function overlayHex(hex1, hex2) {
   let a = toDec(hex1) / 255;
@@ -36,14 +64,32 @@ function overlayHex(hex1, hex2) {
   return toFixHex(overlay * 255)
 }
 
+function hexToRgb(hex) {
+    let r = 0, g = 0, b = 0;
+    // Handle 3-digit shorthand
+    if (hex.length === 4) {
+        r = parseInt(hex[1] + hex[1], 16);
+        g = parseInt(hex[2] + hex[2], 16);
+        b = parseInt(hex[3] + hex[3], 16);
+    } else if (hex.length === 7) {
+        r = parseInt(hex.substring(1, 3), 16);
+        g = parseInt(hex.substring(3, 5), 16);
+        b = parseInt(hex.substring(5, 7), 16);
+    }
+    return { r, g, b };
+}
+function rgbToHex(rgb) {
+    const makeHex = c => Math.round(c).toString(16).padStart(2, '0');
+    return `#${makeHex(rgb.r)}${makeHex(rgb.g)}${makeHex(rgb.b)}`;
+}
 function hsvToRgb(h, s, v) {
-    h /= 360;
-    s /= 100;
-    v /= 100;
     var r, g, b, i, f, p, q, t;
     if (arguments.length === 1) {
         s = h.s, v = h.v, h = h.h;
     }
+    h /= 360;
+    s /= 100;
+    v /= 100;
     i = floor(h * 6);
     f = h * 6 - i;
     p = v * (1 - s);
@@ -114,6 +160,177 @@ function hueToRgb(p, q, t) {
   if (t < 1/2) return q;
   if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
   return p;
+}
+
+/**
+ * Calculates the Delta E 2000 distance between two hexadecimal colors.
+ * @param {string} hex1 - The first color in hex format (e.g., "#FFF" or "#FFFFFF").
+ * @param {string} hex2 - The second color in hex format (e.g., "#000" or "#000000").
+ * @returns {number} The Delta E 2000 color difference.
+ */
+function distanceBetweenHexColorsDeltaE2000(hex1, hex2) {
+    // 1. Convert Hex to RGB
+    const rgb1 = hexToRgb(hex1);
+    const rgb2 = hexToRgb(hex2);
+
+    // 2. Convert RGB to XYZ
+    const xyz1 = rgbToXyz(rgb1.r, rgb1.g, rgb1.b);
+    const xyz2 = rgbToXyz(rgb2.r, rgb2.g, rgb2.b);
+
+    // 3. Convert XYZ to Lab
+    const lab1 = xyzToLab(xyz1.x, xyz1.y, xyz1.z);
+    const lab2 = xyzToLab(xyz2.x, xyz2.y, xyz2.z);
+
+    // 4. Calculate Delta E 2000
+    return deltaE2000(lab1, lab2);
+}
+
+// --- Helper Functions ---
+
+/**
+ * Converts RGB values to XYZ color space (using D65 white point).
+ */
+function rgbToXyz(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
+    r = (r > 0.04045) ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
+    g = (g > 0.04045) ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
+    b = (b > 0.04045) ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
+
+    r *= 100;
+    g *= 100;
+    b *= 100;
+
+    // D65 white point reference primaries
+    const x = r * 0.4124 + g * 0.3576 + b * 0.1805;
+    const y = r * 0.2126 + g * 0.7152 + b * 0.0722;
+    const z = r * 0.0193 + g * 0.1192 + b * 0.9505;
+
+    return { x, y, z };
+}
+
+/**
+ * Converts XYZ values to CIELAB color space.
+ */
+function xyzToLab(x, y, z) {
+    // D65 white point values
+    const refX = 95.047;
+    const refY = 100.000;
+    const refZ = 108.883;
+
+    x /= refX;
+    y /= refY;
+    z /= refZ;
+
+    x = (x > 0.008856) ? Math.pow(x, 1/3) : (7.787 * x) + 16/116;
+    y = (y > 0.008856) ? Math.pow(y, 1/3) : (7.787 * y) + 16/116;
+    z = (z > 0.008856) ? Math.pow(z, 1/3) : (7.787 * z) + 16/116;
+
+    const L = (116 * y) - 16;
+    const a = 500 * (x - y);
+    const b = 200 * (y - z);
+
+    return { L, a, b };
+}
+
+/**
+ * Calculates the Delta E 2000 difference between two Lab colors.
+ * based on the implementation notes from Sharma et al..
+ */
+function deltaE2000(lab1, lab2) {
+    const kL = 1.0, kC = 1.0, kH = 1.0; // Parametric factors often set to 1.0
+    const deg2rad = Math.PI / 180;
+    const rad2deg = 180 / Math.PI;
+
+    // Extract Lab values
+    const L1 = lab1.L, a1 = lab1.a, b1 = lab1.b;
+    const L2 = lab2.L, a2 = lab2.a, b2 = lab2.b;
+
+    // Calculate C*ab values (Chroma)
+    const C1 = Math.sqrt(a1*a1 + b1*b1);
+    const C2 = Math.sqrt(a2*a2 + b2*b2);
+    const CBar = (C1 + C2) / 2.0;
+
+    // Calculate G (chroma correction factor)
+    const CBarPow7 = Math.pow(CBar, 7);
+    const G = 0.5 * (1 - Math.sqrt(CBarPow7 / (CBarPow7 + 6103515625.0))); // 6103515625 = 25^7
+
+    // Calculate a' and C' (lightness corrected a* and new chroma)
+    const a1Prime = a1 * (1 + G);
+    const a2Prime = a2 * (1 + G);
+    const C1Prime = Math.sqrt(a1Prime*a1Prime + b1*b1);
+    const C2Prime = Math.sqrt(a2Prime*a2Prime + b2*b2);
+    const CBarPrime = (C1Prime + C2Prime) / 2.0;
+    const DeltaCPrime = C2Prime - C1Prime;
+
+    // Calculate h' (hue angle)
+    const h1Prime = (Math.atan2(b1, a1Prime) * rad2deg);
+    const h2Prime = (Math.atan2(b2, a2Prime) * rad2deg);
+
+    // Normalize hue angles to 0-360 range
+    // Note: JS atan2 returns -180 to 180.
+    const normalizedH1 = h1Prime >= 0 ? h1Prime : (h1Prime + 360);
+    const normalizedH2 = h2Prime >= 0 ? h2Prime : (h2Prime + 360);
+
+    // Calculate Delta h' (hue difference) and Delta H' (weighted hue difference)
+    let DeltaHPrime;
+    if (C1Prime * C2Prime === 0) {
+        DeltaHPrime = 0; // If one chroma is zero, hue difference is meaningless.
+    } else if (Math.abs(normalizedH1 - normalizedH2) <= 180) {
+        DeltaHPrime = normalizedH2 - normalizedH1;
+    } else if ((normalizedH2 - normalizedH1) > 180) {
+        DeltaHPrime = (normalizedH2 - normalizedH1) - 360;
+    } else { // (h2 - h1) < -180
+        DeltaHPrime = (normalizedH2 - normalizedH1) + 360;
+    }
+    
+    // Convert Delta H' to a metric difference (ΔH')
+    const DeltaSmallHPrime = 2 * Math.sqrt(C1Prime * C2Prime) * Math.sin(DeltaHPrime * deg2rad / 2.0);
+
+    // Calculate Delta L'
+    const DeltaLPrime = L2 - L1;
+
+    // Calculate Average H' (HBarPrime)
+    let HBarPrime;
+    if (C1Prime * C2Prime === 0) {
+        HBarPrime = normalizedH1 + normalizedH2; // Use sum as average if one is indeterminate
+    } else if (Math.abs(normalizedH1 - normalizedH2) > 180) {
+        if ((normalizedH1 + normalizedH2) < 360) {
+            HBarPrime = (normalizedH1 + normalizedH2 + 360) / 2.0;
+        } else {
+            HBarPrime = (normalizedH1 + normalizedH2 - 360) / 2.0;
+        }
+    } else {
+        HBarPrime = (normalizedH1 + normalizedH2) / 2.0;
+    }
+
+    // Calculate T (hue weighting function)
+    const T = 1.0 - 0.17 * Math.cos((HBarPrime - 30.0) * deg2rad)
+                + 0.24 * Math.cos((2.0 * HBarPrime) * deg2rad)
+                + 0.32 * Math.cos((3.0 * HBarPrime + 6.0) * deg2rad)
+                - 0.20 * Math.cos((4.0 * HBarPrime - 63.0) * deg2rad);
+
+    // Calculate SL, SC, SH (weighting functions)
+    const SL = 1.0 + ((0.015 * Math.pow((HBarPrime - 27.5), 2)) / (20.0 + Math.pow((HBarPrime - 27.5), 2)));
+    const SC = 1.0 + 0.045 * CBarPrime;
+    const SH = 1.0 + 0.015 * CBarPrime * T;
+
+    // Calculate RT (rotation term)
+    const CBarPrimePow7 = Math.pow(CBarPrime, 7);
+    const RT = -2.0 * Math.sin(HBarPrime * deg2rad)
+               * Math.sqrt(CBarPrimePow7 / (CBarPrimePow7 + 6103515625.0));
+
+    // Calculate the final Delta E 2000 value
+    const deltaE = Math.sqrt(
+        Math.pow(DeltaLPrime / (kL * SL), 2) +
+        Math.pow(DeltaCPrime / (kC * SC), 2) +
+        Math.pow(DeltaSmallHPrime / (kH * SH), 2) +
+        RT * (DeltaCPrime / (kC * SC)) * (DeltaSmallHPrime / (kH * SH))
+    );
+
+    return deltaE;
 }
 
 (function(Scratch) {
@@ -324,6 +541,49 @@ function hueToRgb(p, q, t) {
           },
           '---',
           {
+            opcode: 'invertColor',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'invert [COL]',
+            arguments: {
+              COL: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+            }
+          },
+          {
+            opcode: 'contrastColor',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'contrast [COL] by [NUM]',
+            arguments: {
+              COL: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              NUM: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: '0.5'
+              },
+            }
+          },
+          '---',
+          {
+            opcode: 'distanceBetweenColors',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'distance between [COL1] and [COL2]',
+            arguments: {
+              COL1: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              COL2: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#eb57ab'
+              }
+            }
+          },
+          '---',
+          {
             opcode: 'interpolateColors',
             blockType: Scratch.BlockType.REPORTER,
             text: 'interpolate [COL1] to [COL2] ratio [RATIO] using [SPACE]',
@@ -466,6 +726,29 @@ function hueToRgb(p, q, t) {
       let newB = overlayHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
       return '#' + newR + newG + newB;
     }
+    invertColor(args) {
+      let col = hexToRgb(args.COL);
+      const inv = c => 255-c;
+      let invert = {
+        r: inv(col.r),
+        g: inv(col.g),
+        b: inv(col.b),
+      };
+      return rgbToHex(invert);
+    }
+    contrastColor(args) {
+      let col = hexToRgb(args.COL);
+      const cnt = c => ((c - 128) * (1 - args.NUM)) + 128;
+      let contrast = {
+        r: cnt(col.r),
+        g: cnt(col.g),
+        b: cnt(col.b),
+      };
+      return rgbToHex(contrast);
+    }
+    distanceBetweenColors(args) {
+      return distanceBetweenHexColorsDeltaE2000(args.COL1, args.COL2);
+    }
     interpolateColors(args) {
       if (args.SPACE == 'RGB') {
         let newR = mixHexRatio(getRGB(1, args.COL1), getRGB(1, args.COL2), args.RATIO);
@@ -473,12 +756,7 @@ function hueToRgb(p, q, t) {
         let newB = mixHexRatio(getRGB(3, args.COL1), getRGB(3, args.COL2), args.RATIO);
         return '#' + newR + newG + newB;
       } else {
-        let hsv1 = hexToHsv(args.COL1);
-        let hsv2 = hexToHsv(args.COL2);
-        let mixedH = mixRatio(hsv1.h, hsv2.h, args.RATIO);
-        let mixedS = mixRatio(hsv1.s, hsv2.s, args.RATIO);
-        let mixedV = mixRatio(hsv1.v, hsv2.v, args.RATIO);
-        return hsvToHex(mixedH, mixedS, mixedV);
+        return interpolateHexColorsHsv(args.COL1, args.COL2, args.RATIO)
       }
     }
     getChannelFromColor(args) {
