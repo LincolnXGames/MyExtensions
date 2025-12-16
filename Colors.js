@@ -566,6 +566,17 @@ function deltaE2000(lab1, lab2) {
               },
             }
           },
+          {
+            opcode: 'grayscaleColor',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'grayscale [COL]',
+            arguments: {
+              COL: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              }
+            }
+          },
           '---',
           {
             opcode: 'distanceBetweenColors',
@@ -745,6 +756,11 @@ function deltaE2000(lab1, lab2) {
         b: cnt(col.b),
       };
       return rgbToHex(contrast);
+    }
+    grayscaleColor(args) {      
+      let rgb = hexToRgb(args.COL);    
+      let gray = Math.round(0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b);
+      return '#' + toFixHex(gray) + toFixHex(gray) + toFixHex(gray);
     }
     distanceBetweenColors(args) {
       return distanceBetweenHexColorsDeltaE2000(args.COL1, args.COL2);
