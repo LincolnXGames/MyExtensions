@@ -433,7 +433,10 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'newColorDecimal',
             blockType: Scratch.BlockType.REPORTER,
-            text: Scratch.translate('from decimal [DEC]'),
+            text: Scratch.translate({
+              default: 'from decimal [DEC]',
+              description: "From decimal - as in the base system"
+            }),
             arguments: {
               DEC: {
                 type: Scratch.ArgumentType.NUMBER,
@@ -570,7 +573,10 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'contrastColor',
             blockType: Scratch.BlockType.REPORTER,
-            text: Scratch.translate('contrast [COL] by [NUM]'),
+            text: Scratch.translate({
+              default: 'contrast [COL] by [NUM]',
+              description: "Contrast - as a verb, comparing to highlight differences"
+            }),
             arguments: {
               COL: {
                 type: Scratch.ArgumentType.COLOR,
@@ -740,7 +746,10 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'colorToDecimal',
             blockType: Scratch.BlockType.REPORTER,
-            text: Scratch.translate('[COL] to decimal'),
+            text: Scratch.translate({
+              default: '[COL] to decimal',
+              description: "To decimal - as in the base system"
+            }),
             arguments: {
               COL: {
                 type: Scratch.ArgumentType.COLOR,
