@@ -1,3 +1,9 @@
+// Name: Colors
+// ID: lxColors
+// Description: 
+// By: LincolnX <https://scratch.mit.edu/users/lincolnXgames/>
+// License: MPL-2.0
+
 const { abs, round, floor, sqrt } = Math;
 
 const toDec = (hex) => parseInt(hex, 16);
