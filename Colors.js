@@ -648,6 +648,29 @@ function deltaE2000(lab1, lab2) {
               }
             }
           },
+          {
+            opcode: 'colorFollowsWCAG',
+            blockType: Scratch.BlockType.BOOLEAN,
+            text: 'does [COL1] and [COL2] follow [AAA] for [TXT] text',
+            arguments: {
+              COL1: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              COL2: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#eb57ab'
+              },
+              AAA: {
+                type: Scratch.ArgumentType.STRING,
+                menu: 'WCAG_MENU'
+              },
+              TXT: {
+                type: Scratch.ArgumentType.STRING,
+                menu: 'TEXTWCAG_SIZE_MENU'
+              }
+            }
+          },
           '---',
           {
             opcode: 'interpolateColors',
@@ -727,6 +750,14 @@ function deltaE2000(lab1, lab2) {
           SPACE_MENU: {
             acceptReporters: true,
             items: ['RGB', 'HSV']
+          },
+          WCAG_MENU: {
+            acceptReporters: true,
+            items: ['A', 'AA', 'AAA']
+          },
+          TEXTWCAG_SIZE_MENU: {
+            acceptReporters: true,
+            items: ['normal', 'large']
           }
         }
       };
@@ -829,6 +860,19 @@ function deltaE2000(lab1, lab2) {
     }
     contrastRatioOfColors(args) {
       return round(contrastRatio(args.COL1, args.COL2) * 100) / 100;
+    }
+    colorFollowsWCAG(args) {
+      let ratio = round(contrastRatio(args.COL1, args.COL2) * 100) / 100;
+      let req = 0;
+      let level = args.AAA;
+      let size = args.TXT;
+      if (level === 'AA') {
+        req = (size === 'large') ? 3.0 : 4.5;
+      }
+      if (level === 'AAA') {
+        req = (size === 'large') ? 4.5 : 7.0;
+      }
+      return ratio >= req;
     }
     interpolateColors(args) {
       if (args.SPACE == 'RGB') {
