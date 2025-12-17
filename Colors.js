@@ -186,34 +186,24 @@ function contrastRatio(hex1, hex2) {
 }
 
 
-/**
- * Calculates the Delta E 2000 distance between two hexadecimal colors.
- * @param {string} hex1 - The first color in hex format (e.g., "#FFF" or "#FFFFFF").
- * @param {string} hex2 - The second color in hex format (e.g., "#000" or "#000000").
- * @returns {number} The Delta E 2000 color difference.
- */
+
 function distanceBetweenHexColorsDeltaE2000(hex1, hex2) {
-    // 1. Convert Hex to RGB
+    // convert Hex to RGB
     const rgb1 = hexToRgb(hex1);
     const rgb2 = hexToRgb(hex2);
 
-    // 2. Convert RGB to XYZ
+    // convert RGB to XYZ
     const xyz1 = rgbToXyz(rgb1.r, rgb1.g, rgb1.b);
     const xyz2 = rgbToXyz(rgb2.r, rgb2.g, rgb2.b);
 
-    // 3. Convert XYZ to Lab
+    // convert XYZ to Lab
     const lab1 = xyzToLab(xyz1.x, xyz1.y, xyz1.z);
     const lab2 = xyzToLab(xyz2.x, xyz2.y, xyz2.z);
 
-    // 4. Calculate Delta E 2000
+    // calculate Delta E 2000
     return deltaE2000(lab1, lab2);
 }
 
-// --- Helper Functions ---
-
-/**
- * Converts RGB values to XYZ color space (using D65 white point).
- */
 function rgbToXyz(r, g, b) {
     r /= 255;
     g /= 255;
@@ -235,9 +225,7 @@ function rgbToXyz(r, g, b) {
     return { x, y, z };
 }
 
-/**
- * Converts XYZ values to CIELAB color space.
- */
+// converts XYZ values to CIELAB color space.
 function xyzToLab(x, y, z) {
     // D65 white point values
     const refX = 95.047;
@@ -259,29 +247,28 @@ function xyzToLab(x, y, z) {
     return { L, a, b };
 }
 
-/**
- * Calculates the Delta E 2000 difference between two Lab colors.
- * based on the implementation notes from Sharma et al..
- */
+
+// calculates the Delta E 2000 difference between two Lab colors.
+// based on the implementation notes from Sharma et al..
 function deltaE2000(lab1, lab2) {
-    const kL = 1.0, kC = 1.0, kH = 1.0; // Parametric factors often set to 1.0
+    const kL = 1.0, kC = 1.0, kH = 1.0; // parametric factors often set to 1.0
     const deg2rad = Math.PI / 180;
     const rad2deg = 180 / Math.PI;
 
-    // Extract Lab values
+    // extract Lab values
     const L1 = lab1.L, a1 = lab1.a, b1 = lab1.b;
     const L2 = lab2.L, a2 = lab2.a, b2 = lab2.b;
 
-    // Calculate C*ab values (Chroma)
+    // calculate C*ab values (Chroma)
     const C1 = Math.sqrt(a1*a1 + b1*b1);
     const C2 = Math.sqrt(a2*a2 + b2*b2);
     const CBar = (C1 + C2) / 2.0;
 
-    // Calculate G (chroma correction factor)
+    // calculate G (chroma correction factor)
     const CBarPow7 = Math.pow(CBar, 7);
     const G = 0.5 * (1 - Math.sqrt(CBarPow7 / (CBarPow7 + 6103515625.0))); // 6103515625 = 25^7
 
-    // Calculate a' and C' (lightness corrected a* and new chroma)
+    // calculate a' and C' (lightness corrected a* and new chroma)
     const a1Prime = a1 * (1 + G);
     const a2Prime = a2 * (1 + G);
     const C1Prime = Math.sqrt(a1Prime*a1Prime + b1*b1);
@@ -289,19 +276,18 @@ function deltaE2000(lab1, lab2) {
     const CBarPrime = (C1Prime + C2Prime) / 2.0;
     const DeltaCPrime = C2Prime - C1Prime;
 
-    // Calculate h' (hue angle)
+    // calculate h' (hue angle)
     const h1Prime = (Math.atan2(b1, a1Prime) * rad2deg);
     const h2Prime = (Math.atan2(b2, a2Prime) * rad2deg);
 
-    // Normalize hue angles to 0-360 range
-    // Note: JS atan2 returns -180 to 180.
+    // normalize hue angles to 0-360 range
     const normalizedH1 = h1Prime >= 0 ? h1Prime : (h1Prime + 360);
     const normalizedH2 = h2Prime >= 0 ? h2Prime : (h2Prime + 360);
 
-    // Calculate Delta h' (hue difference) and Delta H' (weighted hue difference)
+    // calculate Delta h' (hue difference) and Delta H' (weighted hue difference)
     let DeltaHPrime;
     if (C1Prime * C2Prime === 0) {
-        DeltaHPrime = 0; // If one chroma is zero, hue difference is meaningless.
+        DeltaHPrime = 0; // if one chroma is zero, hue difference is meaningless.
     } else if (Math.abs(normalizedH1 - normalizedH2) <= 180) {
         DeltaHPrime = normalizedH2 - normalizedH1;
     } else if ((normalizedH2 - normalizedH1) > 180) {
@@ -310,16 +296,16 @@ function deltaE2000(lab1, lab2) {
         DeltaHPrime = (normalizedH2 - normalizedH1) + 360;
     }
     
-    // Convert Delta H' to a metric difference (ΔH')
+    // convert Delta H' to a metric difference (ΔH')
     const DeltaSmallHPrime = 2 * Math.sqrt(C1Prime * C2Prime) * Math.sin(DeltaHPrime * deg2rad / 2.0);
 
-    // Calculate Delta L'
+    // calculate Delta L'
     const DeltaLPrime = L2 - L1;
 
-    // Calculate Average H' (HBarPrime)
+    // calculate Average H' (HBarPrime)
     let HBarPrime;
     if (C1Prime * C2Prime === 0) {
-        HBarPrime = normalizedH1 + normalizedH2; // Use sum as average if one is indeterminate
+        HBarPrime = normalizedH1 + normalizedH2; // use sum as average if one is indeterminate
     } else if (Math.abs(normalizedH1 - normalizedH2) > 180) {
         if ((normalizedH1 + normalizedH2) < 360) {
             HBarPrime = (normalizedH1 + normalizedH2 + 360) / 2.0;
@@ -330,23 +316,23 @@ function deltaE2000(lab1, lab2) {
         HBarPrime = (normalizedH1 + normalizedH2) / 2.0;
     }
 
-    // Calculate T (hue weighting function)
+    // calculate T (hue weighting function)
     const T = 1.0 - 0.17 * Math.cos((HBarPrime - 30.0) * deg2rad)
                 + 0.24 * Math.cos((2.0 * HBarPrime) * deg2rad)
                 + 0.32 * Math.cos((3.0 * HBarPrime + 6.0) * deg2rad)
                 - 0.20 * Math.cos((4.0 * HBarPrime - 63.0) * deg2rad);
 
-    // Calculate SL, SC, SH (weighting functions)
+    // calculate SL, SC, SH (weighting functions)
     const SL = 1.0 + ((0.015 * Math.pow((HBarPrime - 27.5), 2)) / (20.0 + Math.pow((HBarPrime - 27.5), 2)));
     const SC = 1.0 + 0.045 * CBarPrime;
     const SH = 1.0 + 0.015 * CBarPrime * T;
 
-    // Calculate RT (rotation term)
+    // calculate RT (rotation term)
     const CBarPrimePow7 = Math.pow(CBarPrime, 7);
     const RT = -2.0 * Math.sin(HBarPrime * deg2rad)
                * Math.sqrt(CBarPrimePow7 / (CBarPrimePow7 + 6103515625.0));
 
-    // Calculate the final Delta E 2000 value
+    // calculate the final Delta E 2000 value
     const deltaE = Math.sqrt(
         Math.pow(DeltaLPrime / (kL * SL), 2) +
         Math.pow(DeltaCPrime / (kC * SC), 2) +
@@ -601,6 +587,17 @@ function deltaE2000(lab1, lab2) {
               }
             }
           },
+          {
+            opcode: 'percentWhite',
+            blockType: Scratch.BlockType.REPORTER,
+            text: '[NUM] % white',
+            arguments: {
+              NUM: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: '75'
+              }
+            }
+          },
           '---',
           {
             opcode: 'distanceBetweenColors',
@@ -629,6 +626,25 @@ function deltaE2000(lab1, lab2) {
               COL2: {
                 type: Scratch.ArgumentType.COLOR,
                 defaultValue: '#eb57ab'
+              }
+            }
+          },
+          {
+            opcode: 'nearEqualColors',
+            blockType: Scratch.BlockType.BOOLEAN,
+            text: '[COL1] ≈ [COL2] threshold [THR]',
+            arguments: {
+              COL1: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              COL2: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#eb57ab'
+              },
+              THR: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: '25'
               }
             }
           },
@@ -801,8 +817,15 @@ function deltaE2000(lab1, lab2) {
       let gray = Math.round(0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b);
       return '#' + toFixHex(gray) + toFixHex(gray) + toFixHex(gray);
     }
+    percentWhite(args) {
+      let white = round(args.NUM * 2.55)
+      return '#' + toFixHex(white) + toFixHex(white) + toFixHex(white);
+    }
     distanceBetweenColors(args) {
       return distanceBetweenHexColorsDeltaE2000(args.COL1, args.COL2);
+    }
+    nearEqualColors(args) {
+      return distanceBetweenHexColorsDeltaE2000(args.COL1, args.COL2) <= args.THR;
     }
     contrastRatioOfColors(args) {
       return round(contrastRatio(args.COL1, args.COL2) * 100) / 100;
