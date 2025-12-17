@@ -365,7 +365,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'newColor',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'new color [COL]',
+            text: Scratch.translate('new color [COL]'),
             arguments: {
               COL: {
                 type: Scratch.ArgumentType.COLOR,
@@ -376,7 +376,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'newColorRGB',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'from RGB [R] [G] [B]',
+            text: Scratch.translate('from RGB [R] [G] [B]'),
             arguments: {
               R: {
                 type: Scratch.ArgumentType.NUMBER,
@@ -395,7 +395,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'newColorHSV',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'from HSV [H] [S] [V]',
+            text: Scratch.translate('from HSV [H] [S] [V]'),
             arguments: {
               H: {
                 type: Scratch.ArgumentType.NUMBER,
@@ -414,7 +414,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'newColorHSL',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'from HSL [H] [S] [L]',
+            text: Scratch.translate('from HSL [H] [S] [L]'),
             arguments: {
               H: {
                 type: Scratch.ArgumentType.NUMBER,
@@ -433,7 +433,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'newColorDecimal',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'from decimal [DEC]',
+            text: Scratch.translate('from decimal [DEC]'),
             arguments: {
               DEC: {
                 type: Scratch.ArgumentType.NUMBER,
@@ -445,7 +445,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'randomColor',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'random color',
+            text: Scratch.translate('random color'),
             disableMonitor: true
           },
           '---',
@@ -513,7 +513,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'differenceBlend',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'difference of [COL1] - [COL2]',
+            text: Scratch.translate('difference of [COL1] - [COL2]'),
             arguments: {
               COL1: {
                 type: Scratch.ArgumentType.COLOR,
@@ -528,7 +528,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'screenBlend',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'screen [COL1] * [COL2]',
+            text: Scratch.translate('screen [COL1] * [COL2]'),
             arguments: {
               COL1: {
                 type: Scratch.ArgumentType.COLOR,
@@ -543,7 +543,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'overlayBlend',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'overlay [COL1] * [COL2]',
+            text: Scratch.translate('overlay [COL1] * [COL2]'),
             arguments: {
               COL1: {
                 type: Scratch.ArgumentType.COLOR,
@@ -559,7 +559,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'invertColor',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'invert [COL]',
+            text: Scratch.translate('invert [COL]'),
             arguments: {
               COL: {
                 type: Scratch.ArgumentType.COLOR,
@@ -570,7 +570,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'contrastColor',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'contrast [COL] by [NUM]',
+            text: Scratch.translate('contrast [COL] by [NUM]'),
             arguments: {
               COL: {
                 type: Scratch.ArgumentType.COLOR,
@@ -585,7 +585,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'grayscaleColor',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'grayscale [COL]',
+            text: Scratch.translate('grayscale [COL]'),
             arguments: {
               COL: {
                 type: Scratch.ArgumentType.COLOR,
@@ -596,7 +596,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'percentWhite',
             blockType: Scratch.BlockType.REPORTER,
-            text: '[NUM] % white',
+            text: Scratch.translate('[NUM] % white'),
             arguments: {
               NUM: {
                 type: Scratch.ArgumentType.NUMBER,
@@ -608,7 +608,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'distanceBetweenColors',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'distance between [COL1] and [COL2]',
+            text: Scratch.translate('distance between [COL1] and [COL2]'),
             arguments: {
               COL1: {
                 type: Scratch.ArgumentType.COLOR,
@@ -623,7 +623,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'contrastRatioOfColors',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'contrast ratio of [COL1] and [COL2]',
+            text: Scratch.translate('contrast ratio of [COL1] and [COL2]'),
             arguments: {
               COL1: {
                 type: Scratch.ArgumentType.COLOR,
@@ -638,7 +638,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'nearEqualColors',
             blockType: Scratch.BlockType.BOOLEAN,
-            text: '[COL1] ≈ [COL2] threshold [THR]',
+            text: Scratch.translate('[COL1] ≈ [COL2] threshold [THR]'),
             arguments: {
               COL1: {
                 type: Scratch.ArgumentType.COLOR,
@@ -657,7 +657,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'colorFollowsWCAG',
             blockType: Scratch.BlockType.BOOLEAN,
-            text: 'does [COL1] and [COL2] follow [AAA] for [TXT] text',
+            text: Scratch.translate('does [COL1] and [COL2] follow [AAA] for [TXT] text'),
             arguments: {
               COL1: {
                 type: Scratch.ArgumentType.COLOR,
@@ -682,7 +682,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'interpolateColors',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'interpolate [COL1] to [COL2] ratio [RATIO] using [SPACE]',
+            text: Scratch.translate('interpolate [COL1] to [COL2] ratio [RATIO] using [SPACE]'),
             arguments: {
               COL1: {
                 type: Scratch.ArgumentType.COLOR,
@@ -706,7 +706,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'getChannelFromColor',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'get [CHN] of [COL]',
+            text: Scratch.translate('get [CHN] of [COL]'),
             arguments: {
               CHN: {
                 type: Scratch.ArgumentType.STRING,
@@ -721,7 +721,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'setChannelOfColor',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'set [CHN] of [COL] to [SET]',
+            text: Scratch.translate('set [CHN] of [COL] to [SET]'),
             arguments: {
               CHN: {
                 type: Scratch.ArgumentType.STRING,
@@ -740,7 +740,7 @@ function deltaE2000(lab1, lab2) {
           {
             opcode: 'colorToDecimal',
             blockType: Scratch.BlockType.REPORTER,
-            text: '[COL] to decimal',
+            text: Scratch.translate('[COL] to decimal'),
             arguments: {
               COL: {
                 type: Scratch.ArgumentType.COLOR,
