@@ -1,6 +1,6 @@
 // Name: Colors
 // ID: lxColors
-// Description: 
+// Description: Adds a variety of new blocks that manipulates and utilizes colors.
 // By: LincolnX <https://scratch.mit.edu/users/lincolnXgames/>
 // License: MPL-2.0
 
