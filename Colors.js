@@ -669,7 +669,8 @@ function deltaE2000(lab1, lab2) {
                 type: Scratch.ArgumentType.STRING,
                 menu: 'TEXTWCAG_SIZE_MENU'
               }
-            }
+            },
+            hideFromPalette: true
           },
           '---',
           {
