@@ -358,7 +358,7 @@ function deltaE2000(lab1, lab2) {
     getInfo() {
       return {
         id: 'lxColors',
-        name: 'Colors',
+        name: Scratch.translate('Colors'),
         color1: '#f94c97',
         menuIconURI: blockIcon,
         blocks: [
@@ -761,19 +761,32 @@ function deltaE2000(lab1, lab2) {
         menus: {
           CHANNEL_MENU: {
             acceptReporters: true,
-            items: ['red', 'green', 'blue', 'hue', 'saturation', 'value']
+            items: [
+              { text: Scratch.translate("red"), value: "red" },
+              { text: Scratch.translate("green"), value: "green" },
+              { text: Scratch.translate("blue"), value: "blue" },
+              { text: Scratch.translate("hue"), value: "hue" },
+              { text: Scratch.translate("saturation"), value: "saturation" },
+              { text: Scratch.translate("value"), value: "value" },
+            ],
           },
           SPACE_MENU: {
             acceptReporters: true,
-            items: ['RGB', 'HSV']
+            items: [
+              { text: Scratch.translate("RGB"), value: "RGB" },
+              { text: Scratch.translate("HSV"), value: "HSV" },
+            ],
           },
           WCAG_MENU: {
             acceptReporters: true,
-            items: ['A', 'AA', 'AAA']
+            items: ['A', 'AA', 'AAA'],
           },
           TEXTWCAG_SIZE_MENU: {
             acceptReporters: true,
-            items: ['normal', 'large']
+            items: [
+              { text: Scratch.translate("normal"), value: "normal" },
+              { text: Scratch.translate("large"), value: "large" },
+            ],
           }
         }
       };
