@@ -162,6 +162,30 @@ function hueToRgb(p, q, t) {
   return p;
 }
 
+function channelToLinear(c) {
+  c /= 255;
+  return c <= 0.03928
+    ? c / 12.92
+    : Math.pow((c + 0.055) / 1.055, 2.4);
+}
+
+function relativeLuminance(hex) {
+  const { r, g, b } = hexToRgb(hex);
+  const R = channelToLinear(r);
+  const G = channelToLinear(g);
+  const B = channelToLinear(b);
+  return 0.2126 * R + 0.7152 * G + 0.0722 * B;
+}
+
+function contrastRatio(hex1, hex2) {
+  const L1 = relativeLuminance(hex1);
+  const L2 = relativeLuminance(hex2);
+  const light = Math.max(L1, L2);
+  const dark = Math.min(L1, L2);
+  return (light + 0.05) / (dark + 0.05);
+}
+
+
 /**
  * Calculates the Delta E 2000 distance between two hexadecimal colors.
  * @param {string} hex1 - The first color in hex format (e.g., "#FFF" or "#FFFFFF").
@@ -593,6 +617,21 @@ function deltaE2000(lab1, lab2) {
               }
             }
           },
+          {
+            opcode: 'contrastRatioOfColors',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'contrast ratio of [COL1] and [COL2]',
+            arguments: {
+              COL1: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              COL2: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#eb57ab'
+              }
+            }
+          },
           '---',
           {
             opcode: 'interpolateColors',
@@ -764,6 +803,9 @@ function deltaE2000(lab1, lab2) {
     }
     distanceBetweenColors(args) {
       return distanceBetweenHexColorsDeltaE2000(args.COL1, args.COL2);
+    }
+    contrastRatioOfColors(args) {
+      return round(contrastRatio(args.COL1, args.COL2) * 100) / 100;
     }
     interpolateColors(args) {
       if (args.SPACE == 'RGB') {
