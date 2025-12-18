@@ -18,6 +18,7 @@ const mulHex = (hex1, hex2) => toHex(toDec(hex1) * toDec(hex2));
 const divHex = (hex1, hex2) => toHex(toDec(hex1) / toDec(hex2));
 const roundHex = (hex) => toHex(round(toDec(hex)));
 const limitHex = (hex, mi, ma) => toHex(Math.min(Math.max(toDec(hex), mi), ma));
+const clamp = (n, mi, ma) => Math.min(Math.max(n, mi), ma);
 const fixHex = (hex) => limitHex(hex, 0, 255).padStart(2, '0');
 const toFixHex = (dec) => fixHex(dec.toString(16));
 const additiveHex = (hex1, hex2) => fixHex(addHex(hex1, hex2));
@@ -742,6 +743,24 @@ function deltaE2000(lab1, lab2) {
               }
             }
           },
+          {
+            opcode: 'changeChannelOfColor',
+            blockType: Scratch.BlockType.REPORTER,
+            text: Scratch.translate('change [CHN] of [COL] by [SET]'),
+            arguments: {
+              CHN: {
+                type: Scratch.ArgumentType.STRING,
+                menu: 'CHANNEL_MENU'
+              },
+              COL: {
+                type: Scratch.ArgumentType.COLOR,
+                defaultValue: '#a45eff'
+              },
+              SET: {
+                type: Scratch.ArgumentType.NUMBER,
+              }
+            }
+          },
           '---',
           {
             opcode: 'colorToDecimal',
@@ -756,7 +775,7 @@ function deltaE2000(lab1, lab2) {
                 defaultValue: '#a45eff'
               }
             }
-          }
+          },
         ],
         menus: {
           CHANNEL_MENU: {
@@ -787,7 +806,7 @@ function deltaE2000(lab1, lab2) {
               { text: Scratch.translate("normal"), value: "normal" },
               { text: Scratch.translate("large"), value: "large" },
             ],
-          }
+          },
         }
       };
     }
@@ -945,6 +964,29 @@ function deltaE2000(lab1, lab2) {
           case 'hue': hsv.h = args.SET; break;
           case 'saturation': hsv.s = args.SET; break;
           case 'value': hsv.v = args.SET; break;
+        }
+        return hsvToHex(hsv.h, hsv.s, hsv.v);
+      }
+    }
+    changeChannelOfColor(args) {
+      if (['red', 'green', 'blue'].includes(args.CHN)) {
+        let rgb = {
+          r: toDec(getRGB(1, args.COL)),
+          g: toDec(getRGB(2, args.COL)),
+          b: toDec(getRGB(3, args.COL))
+        };
+        switch (args.CHN) {
+          case 'red': rgb.r = clamp(rgb.r + args.SET, 0, 255); break;
+          case 'green': rgb.g = clamp(rgb.g + args.SET, 0, 255); break;
+          case 'blue': rgb.b = clamp(rgb.b + args.SET, 0, 255); break;
+        }
+        return '#' + toFixHex(rgb.r) + toFixHex(rgb.g) + toFixHex(rgb.b);
+      } else if (['hue', 'saturation', 'value'].includes(args.CHN)) {
+        let hsv = hexToHsv(args.COL);
+        switch (args.CHN) {
+          case 'hue': hsv.h = (hsv.h + args.SET) % 360; break;
+          case 'saturation': hsv.s = clamp(hsv.s + args.SET, 0, 100); break;
+          case 'value': hsv.v = clamp(hsv.v + args.SET, 0, 100); break;
         }
         return hsvToHex(hsv.h, hsv.s, hsv.v);
       }
