@@ -8,39 +8,14 @@ const { abs, round, floor, sqrt } = Math;
 
 const toDec = (hex) => parseInt(hex, 16);
 const toHex = (dec) => dec.toString(16);
-const getRGB = (chn, clr) => {
-  clr = clr.replace('#','');
-  return clr.slice((chn - 1) * 2, chn * 2);
-};
-const addHex = (hex1, hex2) => toHex(toDec(hex1) + toDec(hex2));
-const subHex = (hex1, hex2) => toHex(toDec(hex1) - toDec(hex2));
-const mulHex = (hex1, hex2) => toHex(toDec(hex1) * toDec(hex2));
-const divHex = (hex1, hex2) => toHex(toDec(hex1) / toDec(hex2));
-const roundHex = (hex) => toHex(round(toDec(hex)));
 const limitHex = (hex, mi, ma) => toHex(Math.min(Math.max(toDec(hex), mi), ma));
 const clamp = (n, mi, ma) => Math.min(Math.max(n, mi), ma);
 const fixHex = (hex) => limitHex(hex, 0, 255).padStart(2, '0');
 const toFixHex = (dec) => fixHex(dec.toString(16));
-const additiveHex = (hex1, hex2) => fixHex(addHex(hex1, hex2));
-const subtractiveHex = (hex1, hex2) => fixHex(subHex(hex1, hex2));
-const multiplicativeHex = (hex1, hex2) => toFixHex(((toDec(hex1) / 255) * (toDec(hex2) / 255)) * 255);
-const divisingHex = (hex1, hex2) => {
-  const b = Math.max(1, toDec(hex2));
-  return toFixHex(((toDec(hex1) / 255) / (b / 255)) * 255);
-};
-const differenceHex = (hex1, hex2) => toFixHex(abs(toDec(hex1) - toDec(hex2)));
-const screenHex = (hex1, hex2) => toFixHex((1 - (1 - toDec(hex1) / 255) * (1 - toDec(hex2) / 255)) * 255);
-const mixRatio = (a, b, ratio) => a + (b - a) * ratio;
-function mixHexRatio(hex1, hex2, ratio) {
-  let a = toDec(hex1);
-  let b = toDec(hex2);
-  ratio = Math.min(1, Math.max(0, ratio));
-  let result = a + (b - a) * ratio;
-  return toFixHex(result);
-}
+const lerp = (a, b, t) => a + (b - a) * t;
 function interpolateHexColorsHsv(color1, color2, factor) {
-    const hsv1 = rgbToHsv(hexToRgb(color1));
-    const hsv2 = rgbToHsv(hexToRgb(color2));
+    const hsv1 = hexToHsv(color1);
+    const hsv2 = hexToHsv(color2);
     factor = Math.min(1, Math.max(0, factor));
     // Handle hue interpolation for the shortest path around the color wheel
     let h1 = hsv1.h;
@@ -137,10 +112,12 @@ function rgbToHsv(r, g, b) {
         v: v * 100
     };
 }
-const hexToHsv = (hex) => rgbToHsv(toDec(getRGB(1, hex)), toDec(getRGB(2, hex)), toDec(getRGB(3, hex)));
+const hexToHsv = (hex) => rgbToHsv(hexToRgb(hex));
 function hsvToHex(h, s, v) {
-  let convRGB = hsvToRgb(h, s, v);
-  return '#' + toFixHex(convRGB.r) + toFixHex(convRGB.g) + toFixHex(convRGB.b);
+  if (arguments.length === 1) {
+        s = h.s, v = h.v, h = h.h;
+    }
+  return rgbToHex(hsvToRgb(h, s, v));
 }
 
 function hslToRgb(h, s, l) {
@@ -295,7 +272,7 @@ function deltaE2000(lab1, lab2) {
     let DeltaHPrime;
     if (C1Prime * C2Prime === 0) {
         DeltaHPrime = 0; // if one chroma is zero, hue difference is meaningless.
-    } else if (Math.abs(normalizedH1 - normalizedH2) <= 180) {
+    } else if (abs(normalizedH1 - normalizedH2) <= 180) {
         DeltaHPrime = normalizedH2 - normalizedH1;
     } else if ((normalizedH2 - normalizedH1) > 180) {
         DeltaHPrime = (normalizedH2 - normalizedH1) - 360;
@@ -313,7 +290,7 @@ function deltaE2000(lab1, lab2) {
     let HBarPrime;
     if (C1Prime * C2Prime === 0) {
         HBarPrime = normalizedH1 + normalizedH2; // use sum as average if one is indeterminate
-    } else if (Math.abs(normalizedH1 - normalizedH2) > 180) {
+    } else if (abs(normalizedH1 - normalizedH2) > 180) {
         if ((normalizedH1 + normalizedH2) < 360) {
             HBarPrime = (normalizedH1 + normalizedH2 + 360) / 2.0;
         } else {
@@ -830,66 +807,92 @@ function deltaE2000(lab1, lab2) {
       return '#' + Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6, '0');
     }
     additiveBlend(args) {
-      let newR = additiveHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
-      let newG = additiveHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
-      let newB = additiveHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
-      return '#' + newR + newG + newB;
+      let a = hexToRgb(args.COL1);
+      let b = hexToRgb(args.COL2);
+      const add = (c1, c2) => clamp(c1 + c2, 0, 255);
+      return rgbToHex({
+        r: add(a.r, b.r),
+        g: add(a.g, b.g),
+        b: add(a.b, b.b)
+      });
     }
     subtractiveBlend(args) {
-      let newR = subtractiveHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
-      let newG = subtractiveHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
-      let newB = subtractiveHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
-      return '#' + newR + newG + newB;
+      let a = hexToRgb(args.COL1);
+      let b = hexToRgb(args.COL2);
+      const sub = (c1, c2) => clamp(c1 - c2, 0, 255);
+      return rgbToHex({
+        r: sub(a.r, b.r),
+        g: sub(a.g, b.g),
+        b: sub(a.b, b.b)
+      });
     }
     multiplicativeBlend(args) {
-      let newR = multiplicativeHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
-      let newG = multiplicativeHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
-      let newB = multiplicativeHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
-      return '#' + newR + newG + newB;
+      let a = hexToRgb(args.COL1);
+      let b = hexToRgb(args.COL2);
+      const mul = (c1, c2) => clamp((c1 * c2) / 255, 0, 255);
+      return rgbToHex({
+        r: mul(a.r, b.r),
+        g: mul(a.g, b.g),
+        b: mul(a.b, b.b)
+      });
     }
     divisingBlend(args) {
-      let newR = divisingHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
-      let newG = divisingHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
-      let newB = divisingHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
-      return '#' + newR + newG + newB;
+      let a = hexToRgb(args.COL1);
+      let b = hexToRgb(args.COL2);
+      const div = (c1, c2) => clamp((c1 / Math.max(c2, 1)) * 255, 0, 255);
+      return rgbToHex({
+        r: div(a.r, b.r),
+        g: div(a.g, b.g),
+        b: div(a.b, b.b)
+      });
     }
     differenceBlend(args) {
-      let newR = differenceHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
-      let newG = differenceHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
-      let newB = differenceHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
-      return '#' + newR + newG + newB;
+      let a = hexToRgb(args.COL1);
+      let b = hexToRgb(args.COL2);
+      const sub = (c1, c2) => clamp(abs(c1 - c2), 0, 255);
+      return rgbToHex({
+        r: sub(a.r, b.r),
+        g: sub(a.g, b.g),
+        b: sub(a.b, b.b)
+      });
     }
     screenBlend(args) {
-      let newR = screenHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
-      let newG = screenHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
-      let newB = screenHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
-      return '#' + newR + newG + newB;
+      let a = hexToRgb(args.COL1);
+      let b = hexToRgb(args.COL2);
+      const scr = (c1, c2) => clamp(c1 + c2 - (c1 * c2) / 255, 0, 255);
+      return rgbToHex({
+        r: scr(a.r, b.r),
+        g: scr(a.g, b.g),
+        b: scr(a.b, b.b)
+      });
     }
     overlayBlend(args) {
-      let newR = overlayHex(getRGB(1, args.COL1), getRGB(1, args.COL2));
-      let newG = overlayHex(getRGB(2, args.COL1), getRGB(2, args.COL2));
-      let newB = overlayHex(getRGB(3, args.COL1), getRGB(3, args.COL2));
-      return '#' + newR + newG + newB;
+      let a = hexToRgb(args.COL1);
+      let b = hexToRgb(args.COL2);
+      const ove = (c1, c2) => clamp(c1 < 128 ? (2 * c1 * c2) / 255 : 255 - (2 * (255 - c1) * (255 - c2)) / 255, 0, 255);
+      return rgbToHex({
+        r: ove(a.r, b.r),
+        g: ove(a.g, b.g),
+        b: ove(a.b, b.b)
+      });
     }
     invertColor(args) {
       let col = hexToRgb(args.COL);
       const inv = c => 255-c;
-      let invert = {
+      return rgbToHex({
         r: inv(col.r),
         g: inv(col.g),
         b: inv(col.b),
-      };
-      return rgbToHex(invert);
+      });
     }
     contrastColor(args) {
       let col = hexToRgb(args.COL);
       const cnt = c => ((c - 128) * (1 - args.NUM)) + 128;
-      let contrast = {
+      return rgbToHex({
         r: cnt(col.r),
         g: cnt(col.g),
         b: cnt(col.b),
-      };
-      return rgbToHex(contrast);
+      });
     }
     grayscaleColor(args) {      
       let rgb = hexToRgb(args.COL);    
@@ -924,18 +927,23 @@ function deltaE2000(lab1, lab2) {
     }
     interpolateColors(args) {
       if (args.SPACE == 'RGB') {
-        let newR = mixHexRatio(getRGB(1, args.COL1), getRGB(1, args.COL2), args.RATIO);
-        let newG = mixHexRatio(getRGB(2, args.COL1), getRGB(2, args.COL2), args.RATIO);
-        let newB = mixHexRatio(getRGB(3, args.COL1), getRGB(3, args.COL2), args.RATIO);
-        return '#' + newR + newG + newB;
+        let a = hexToRgb(args.COL1);
+        let b = hexToRgb(args.COL2);
+        let t = args.RATIO;
+        return rgbToHex({
+          r: lerp(a.r, b.r, t),
+          g: lerp(a.g, b.g, t),
+          b: lerp(a.b, b.b, t)
+        });
       } else {
         return interpolateHexColorsHsv(args.COL1, args.COL2, args.RATIO)
       }
     }
     getChannelFromColor(args) {
       if (['red', 'green', 'blue'].includes(args.CHN)) {
-        let channel = ['red', 'green', 'blue'].indexOf(args.CHN) + 1;
-        return toDec(getRGB(channel, args.COL));
+        let channel = ['red', 'green', 'blue'].indexOf(args.CHN);
+        let letter = ['red', 'green', 'blue'][channel][0];
+        return hexToRgb(args.COL)[letter];
       } else if (['hue', 'saturation', 'value'].includes(args.CHN)) {
         let hsv = hexToHsv(args.COL);
         switch (args.CHN) {
@@ -947,11 +955,7 @@ function deltaE2000(lab1, lab2) {
     }
     setChannelOfColor(args) {
       if (['red', 'green', 'blue'].includes(args.CHN)) {
-        let rgb = {
-          r: toDec(getRGB(1, args.COL)),
-          g: toDec(getRGB(2, args.COL)),
-          b: toDec(getRGB(3, args.COL))
-        };
+        let rgb = hexToRgb(args.COL);
         switch (args.CHN) {
           case 'red': rgb.r = args.SET; break;
           case 'green': rgb.g = args.SET; break;
@@ -970,11 +974,7 @@ function deltaE2000(lab1, lab2) {
     }
     changeChannelOfColor(args) {
       if (['red', 'green', 'blue'].includes(args.CHN)) {
-        let rgb = {
-          r: toDec(getRGB(1, args.COL)),
-          g: toDec(getRGB(2, args.COL)),
-          b: toDec(getRGB(3, args.COL))
-        };
+        let rgb = hexToRgb(args.COL);
         switch (args.CHN) {
           case 'red': rgb.r = clamp(rgb.r + args.SET, 0, 255); break;
           case 'green': rgb.g = clamp(rgb.g + args.SET, 0, 255); break;
