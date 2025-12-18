@@ -173,7 +173,7 @@ function channelToLinear(c) {
   c /= 255;
   return c <= 0.03928
     ? c / 12.92
-    : Math.pow((c + 0.055) / 1.055, 2.4);
+    : ((c + 0.055) / 1.055) ** 2.4;
 }
 
 function relativeLuminance(hex) {
@@ -216,9 +216,9 @@ function rgbToXyz(r, g, b) {
     g /= 255;
     b /= 255;
 
-    r = (r > 0.04045) ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
-    g = (g > 0.04045) ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
-    b = (b > 0.04045) ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
+    r = (r > 0.04045) ? ((r + 0.055) / 1.055) ** 2.4 : r / 12.92;
+    g = (g > 0.04045) ? ((g + 0.055) / 1.055) ** 2.4 : g / 12.92;
+    b = (b > 0.04045) ? ((b + 0.055) / 1.055) ** 2.4 : b / 12.92;
 
     r *= 100;
     g *= 100;
@@ -243,9 +243,9 @@ function xyzToLab(x, y, z) {
     y /= refY;
     z /= refZ;
 
-    x = (x > 0.008856) ? Math.pow(x, 1/3) : (7.787 * x) + 16/116;
-    y = (y > 0.008856) ? Math.pow(y, 1/3) : (7.787 * y) + 16/116;
-    z = (z > 0.008856) ? Math.pow(z, 1/3) : (7.787 * z) + 16/116;
+    x = (x > 0.008856) ? x ** (1/3) : (7.787 * x) + 16/116;
+    y = (y > 0.008856) ? y ** (1/3) : (7.787 * y) + 16/116;
+    z = (z > 0.008856) ? z ** (1/3) : (7.787 * z) + 16/116;
 
     const L = (116 * y) - 16;
     const a = 500 * (x - y);
@@ -272,7 +272,7 @@ function deltaE2000(lab1, lab2) {
     const CBar = (C1 + C2) / 2.0;
 
     // calculate G (chroma correction factor)
-    const CBarPow7 = Math.pow(CBar, 7);
+    const CBarPow7 = CBar ** 7;
     const G = 0.5 * (1 - Math.sqrt(CBarPow7 / (CBarPow7 + 6103515625.0))); // 6103515625 = 25^7
 
     // calculate a' and C' (lightness corrected a* and new chroma)
@@ -330,20 +330,20 @@ function deltaE2000(lab1, lab2) {
                 - 0.20 * Math.cos((4.0 * HBarPrime - 63.0) * deg2rad);
 
     // calculate SL, SC, SH (weighting functions)
-    const SL = 1.0 + ((0.015 * Math.pow((HBarPrime - 27.5), 2)) / (20.0 + Math.pow((HBarPrime - 27.5), 2)));
+    const SL = 1.0 + ((0.015 * ((HBarPrime - 27.5) ** 2) / (20.0 + ((HBarPrime - 27.5) ** 2))));
     const SC = 1.0 + 0.045 * CBarPrime;
     const SH = 1.0 + 0.015 * CBarPrime * T;
 
     // calculate RT (rotation term)
-    const CBarPrimePow7 = Math.pow(CBarPrime, 7);
+    const CBarPrimePow7 = CBarPrime ** 7;
     const RT = -2.0 * Math.sin(HBarPrime * deg2rad)
                * Math.sqrt(CBarPrimePow7 / (CBarPrimePow7 + 6103515625.0));
 
     // calculate the final Delta E 2000 value
     const deltaE = Math.sqrt(
-        Math.pow(DeltaLPrime / (kL * SL), 2) +
-        Math.pow(DeltaCPrime / (kC * SC), 2) +
-        Math.pow(DeltaSmallHPrime / (kH * SH), 2) +
+        (DeltaLPrime / (kL * SL)) ** 2 +
+        (DeltaCPrime / (kC * SC)) ** 2 +
+        (DeltaSmallHPrime / (kH * SH)) ** 2 +
         RT * (DeltaCPrime / (kC * SC)) * (DeltaSmallHPrime / (kH * SH))
     );
 
