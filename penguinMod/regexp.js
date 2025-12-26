@@ -16,14 +16,14 @@
   }
   if (Scratch.gui) {
     Scratch.gui.getBlockly().then(ScratchBlocks => {
-      ScratchBlocks.BlockSvg.registerCustomShape("lxPmodTests-packet", shape);
+      ScratchBlocks.BlockSvg.registerCustomShape("lxRegExp-packet", shape);
     });
   }
   class Extension {
     getInfo() {
       return {
-        id: "lxPmodTests",
-        name: "LincolnX's Tests",
+        id: "lxRegExp",
+        name: "Regular Expressions",
         blocks: [
           {
             opcode: 'logToConsole',
@@ -31,13 +31,17 @@
             blockType: Scratch.BlockType.COMMAND,
           },
           {
-            opcode: 'testReporter',
-            text: 'testing!',
+            opcode: 'regexpFromPattern',
+            text: 'from pattern [PAT]',
             blockType: Scratch.BlockType.REPORTER,
-            blockShape: "lxPmodTests-packet",
-            forceOutputType: "lxPmodTests-packet",
+            blockShape: "lxRegExp-packet",
+            forceOutputType: "lxRegExp-packet",
             disableMonitor: true,
-	          allowDropAnywhere: true,
+		      	arguments: {
+          	  PAT: {
+		        	  type: Scratch.ArgumentType.STRING,
+		      	  }
+           	}
           },
         ]
       };
@@ -46,8 +50,8 @@
     logToConsole() {
       console.log('Hello world!');
     }
-    testReporter() {
-      return "Hello world!";
+    regexpFromPattern(args) {
+      return args.PAT;
     }
   }
 
